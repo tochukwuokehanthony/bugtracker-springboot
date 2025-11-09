@@ -1,9 +1,9 @@
 package com.bugtracker.app.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -13,9 +13,12 @@ import java.util.Set;
 
 @Entity
 @Table(name = "tickets")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = {"project", "createdBy", "comments", "assignedDevelopers"})
+@EqualsAndHashCode(exclude = {"project", "createdBy", "comments", "assignedDevelopers"})
 public class Ticket {
 
     @Id
@@ -30,10 +33,12 @@ public class Ticket {
 
     @ManyToOne
     @JoinColumn(name = "project_id", nullable = false)
+    @JsonIgnoreProperties({"tickets", "teamMembers", "createdBy"})
     private Project project;
 
     @ManyToOne
     @JoinColumn(name = "created_by")
+    @JsonIgnoreProperties({"createdProjects", "createdTickets", "projects", "assignedTickets", "comments", "password"})
     private User createdBy;
 
     @Column(nullable = false)
@@ -58,8 +63,10 @@ public class Ticket {
 
     // Relationships
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private Set<Comment> comments = new HashSet<>();
 
     @ManyToMany(mappedBy = "assignedTickets")
+    @JsonIgnoreProperties({"createdProjects", "createdTickets", "projects", "assignedTickets", "comments", "password"})
     private Set<User> assignedDevelopers = new HashSet<>();
 }

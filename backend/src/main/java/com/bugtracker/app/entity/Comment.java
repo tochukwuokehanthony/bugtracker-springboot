@@ -1,9 +1,8 @@
 package com.bugtracker.app.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -11,9 +10,12 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "comments")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = {"ticket", "user"})
+@EqualsAndHashCode(exclude = {"ticket", "user"})
 public class Comment {
 
     @Id
@@ -25,10 +27,12 @@ public class Comment {
 
     @ManyToOne
     @JoinColumn(name = "ticket_id", nullable = false)
+    @JsonIgnoreProperties({"project", "createdBy", "comments", "assignedDevelopers"})
     private Ticket ticket;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnoreProperties({"createdProjects", "createdTickets", "projects", "assignedTickets", "comments", "password"})
     private User user;
 
     @CreationTimestamp

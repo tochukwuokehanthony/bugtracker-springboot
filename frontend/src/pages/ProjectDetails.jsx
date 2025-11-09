@@ -10,6 +10,7 @@ const ProjectDetails = () => {
   const [project, setProject] = useState(null)
   const [tickets, setTickets] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [formData, setFormData] = useState({
     title: '',
@@ -25,6 +26,7 @@ const ProjectDetails = () => {
 
   const fetchProjectDetails = async () => {
     try {
+      setError(null)
       const [projectRes, ticketsRes] = await Promise.all([
         projectAPI.getProjectById(id),
         ticketAPI.getTicketsByProjectId(id),
@@ -33,6 +35,7 @@ const ProjectDetails = () => {
       setProject(projectRes.data)
       setTickets(ticketsRes.data)
     } catch (error) {
+      setError(error.response?.data?.message || 'Failed to load project details')
       toast.error('Failed to load project details')
       console.error(error)
     } finally {
@@ -67,44 +70,138 @@ const ProjectDetails = () => {
     }
   }
 
+  const getTypeIcon = (type) => {
+    switch (type) {
+      case 'BUG':
+        return '🐛'
+      case 'FEATURE':
+        return '✨'
+      case 'ENHANCEMENT':
+        return '⚡'
+      case 'DOCUMENTATION':
+        return '📚'
+      default:
+        return '📋'
+    }
+  }
+
   if (loading) {
     return (
       <>
         <Navbar />
-        <Container>
-          <div className="text-center">
-            <div className="spinner-border" role="status">
+        <Container className="py-4">
+          <div className="text-center py-5">
+            <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
               <span className="visually-hidden">Loading...</span>
             </div>
+            <p className="text-muted mt-3">Loading project details...</p>
           </div>
         </Container>
       </>
     )
   }
 
+  if (error || !project) {
+    return (
+      <>
+        <Navbar />
+        <Container className="py-4">
+          <Card className="border-0">
+            <CardBody>
+              <div className="empty-state">
+                <div className="empty-state-icon">❌</div>
+                <h3 className="mb-2">Project Not Found</h3>
+                <p className="mb-4">{error || 'The project you are looking for does not exist.'}</p>
+                <Button tag={Link} to="/projects" color="primary" className="action-btn">
+                  ← Back to Projects
+                </Button>
+              </div>
+            </CardBody>
+          </Card>
+        </Container>
+      </>
+    )
+  }
+
+  const openTickets = tickets.filter(t => t.status === 'OPEN').length
+  const inProgressTickets = tickets.filter(t => t.status === 'IN_PROGRESS').length
+  const closedTickets = tickets.filter(t => t.status === 'CLOSED').length
+
   return (
     <>
       <Navbar />
-      <Container>
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <h1>{project.name}</h1>
-          <Button color="primary" onClick={toggleModal}>
-            Create Ticket
-          </Button>
+      <Container className="py-4">
+        <div className="page-header">
+          <div className="d-flex justify-content-between align-items-start">
+            <div>
+              <div className="d-flex align-items-center gap-2 mb-2">
+                <Link to="/projects" className="text-muted text-decoration-none">
+                  <span>← Projects</span>
+                </Link>
+                <span className="text-muted">/</span>
+                <span className="text-muted">{project.name}</span>
+              </div>
+              <h1 className="page-title mb-2">{project.name}</h1>
+              <p className="text-muted mb-0">
+                <span className="me-3">
+                  <span className="me-1">👤</span> Created by {project.createdByName}
+                </span>
+                <span>
+                  <span className="me-1">👥</span> {project.teamMemberIds?.length || 0} team members
+                </span>
+              </p>
+            </div>
+            <Button color="primary" onClick={toggleModal} className="action-btn">
+              <span className="me-2">➕</span> Create Ticket
+            </Button>
+          </div>
         </div>
 
-        <Row className="mb-4">
+        <Row className="g-4 mb-4">
           <Col md="12">
             <Card>
               <CardBody>
-                <h5>Description</h5>
-                <p>{project.description || 'No description provided'}</p>
-                <p>
-                  <strong>Created by:</strong> {project.createdByName}
-                </p>
-                <p>
-                  <strong>Team members:</strong> {project.teamMemberIds?.length || 0}
-                </p>
+                <h5 className="mb-3 fw-bold">📝 Description</h5>
+                <p className="text-muted mb-0">{project.description || 'No description provided'}</p>
+              </CardBody>
+            </Card>
+          </Col>
+        </Row>
+
+        <Row className="g-4 mb-4">
+          <Col md="3">
+            <Card className="stat-card h-100">
+              <CardBody className="position-relative">
+                <span className="stat-icon">🎫</span>
+                <CardTitle tag="h6" className="text-white-50 text-uppercase mb-2">Total Tickets</CardTitle>
+                <h2 className="display-4 text-white mb-0">{tickets.length}</h2>
+              </CardBody>
+            </Card>
+          </Col>
+          <Col md="3">
+            <Card className="stat-card h-100">
+              <CardBody className="position-relative">
+                <span className="stat-icon">📋</span>
+                <CardTitle tag="h6" className="text-white-50 text-uppercase mb-2">Open</CardTitle>
+                <h2 className="display-4 text-white mb-0">{openTickets}</h2>
+              </CardBody>
+            </Card>
+          </Col>
+          <Col md="3">
+            <Card className="stat-card h-100">
+              <CardBody className="position-relative">
+                <span className="stat-icon">🔄</span>
+                <CardTitle tag="h6" className="text-white-50 text-uppercase mb-2">In Progress</CardTitle>
+                <h2 className="display-4 text-white mb-0">{inProgressTickets}</h2>
+              </CardBody>
+            </Card>
+          </Col>
+          <Col md="3">
+            <Card className="stat-card h-100">
+              <CardBody className="position-relative">
+                <span className="stat-icon">✅</span>
+                <CardTitle tag="h6" className="text-white-50 text-uppercase mb-2">Closed</CardTitle>
+                <h2 className="display-4 text-white mb-0">{closedTickets}</h2>
               </CardBody>
             </Card>
           </Col>
@@ -112,94 +209,132 @@ const ProjectDetails = () => {
 
         <Card>
           <CardBody>
-            <h4 className="mb-3">Tickets ({tickets.length})</h4>
+            <h4 className="mb-4 fw-bold">Tickets</h4>
             {tickets.length === 0 ? (
-              <p className="text-center">No tickets yet. Create one to get started!</p>
+              <div className="empty-state">
+                <div className="empty-state-icon">🎫</div>
+                <h5 className="mb-2">No Tickets Yet</h5>
+                <p className="mb-4">Create your first ticket to start tracking bugs and features!</p>
+                <Button color="primary" onClick={toggleModal} className="action-btn">
+                  <span className="me-2">➕</span> Create First Ticket
+                </Button>
+              </div>
             ) : (
-              <Table hover responsive>
-                <thead>
-                  <tr>
-                    <th>Title</th>
-                    <th>Type</th>
-                    <th>Priority</th>
-                    <th>Status</th>
-                    <th>Assigned To</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {tickets.map((ticket) => (
-                    <tr key={ticket.id}>
-                      <td>
-                        <Link to={`/tickets/${ticket.id}`}>{ticket.title}</Link>
-                      </td>
-                      <td>
-                        <Badge color="secondary">{ticket.type}</Badge>
-                      </td>
-                      <td>
-                        <Badge color={ticket.priority === 'HIGH' ? 'danger' : ticket.priority === 'MEDIUM' ? 'warning' : 'success'}>
-                          {ticket.priority}
-                        </Badge>
-                      </td>
-                      <td>
-                        <Badge color={ticket.status === 'OPEN' ? 'info' : ticket.status === 'IN_PROGRESS' ? 'warning' : 'success'}>
-                          {ticket.status}
-                        </Badge>
-                      </td>
-                      <td>{ticket.assignedDeveloperIds?.length || 0} developers</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
+              <div className="row g-3">
+                {tickets.map((ticket) => (
+                  <div key={ticket.id} className="col-12">
+                    <Card className="ticket-card">
+                      <CardBody>
+                        <div className="row align-items-center">
+                          <div className="col-md-7">
+                            <div className="d-flex align-items-start gap-3">
+                              <div className="fs-3">{getTypeIcon(ticket.type)}</div>
+                              <div className="flex-grow-1">
+                                <h5 className="mb-1">
+                                  <Link to={`/tickets/${ticket.id}`} className="text-decoration-none text-dark fw-bold">
+                                    {ticket.title}
+                                  </Link>
+                                </h5>
+                                <div className="text-muted small">
+                                  <span>👥 {ticket.assignedDeveloperIds?.length || 0} assigned</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="col-md-5">
+                            <div className="d-flex justify-content-md-end align-items-center gap-2 mt-3 mt-md-0 flex-wrap">
+                              <Badge color="secondary" className="text-uppercase">
+                                {ticket.type}
+                              </Badge>
+                              <span className={`badge priority-badge priority-${ticket.priority?.toLowerCase()}`}>
+                                {ticket.priority}
+                              </span>
+                              <span className={`badge status-badge status-${ticket.status?.toLowerCase().replace('_', '-')}`}>
+                                {ticket.status?.replace('_', ' ')}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </CardBody>
+                    </Card>
+                  </div>
+                ))}
+              </div>
             )}
           </CardBody>
         </Card>
 
         {/* Create Ticket Modal */}
-        <Modal isOpen={modalOpen} toggle={toggleModal}>
-          <ModalHeader toggle={toggleModal}>Create New Ticket</ModalHeader>
-          <ModalBody>
+        <Modal isOpen={modalOpen} toggle={toggleModal} centered size="lg">
+          <ModalHeader toggle={toggleModal} className="border-0 pb-0">
+            <div>
+              <h4 className="mb-1 gradient-text">Create New Ticket</h4>
+              <p className="text-muted small mb-0">Add a new ticket to {project.name}</p>
+            </div>
+          </ModalHeader>
+          <ModalBody className="pt-2">
             <Form onSubmit={handleSubmit}>
-              <FormGroup>
-                <Label for="title">Title *</Label>
+              <FormGroup className="mb-3">
+                <Label for="title" className="form-label">Title *</Label>
                 <Input
                   type="text"
                   id="title"
                   name="title"
                   value={formData.title}
                   onChange={handleChange}
+                  placeholder="e.g., Fix login button not working"
                   required
+                  className="form-control"
                 />
               </FormGroup>
-              <FormGroup>
-                <Label for="description">Description</Label>
+              <FormGroup className="mb-3">
+                <Label for="description" className="form-label">Description</Label>
                 <Input
                   type="textarea"
                   id="description"
                   name="description"
                   value={formData.description}
                   onChange={handleChange}
+                  placeholder="Describe the issue or feature in detail..."
                   rows="4"
+                  className="form-control"
                 />
               </FormGroup>
-              <FormGroup>
-                <Label for="type">Type</Label>
-                <Input type="select" id="type" name="type" value={formData.type} onChange={handleChange}>
-                  <option value="BUG">Bug</option>
-                  <option value="FEATURE">Feature</option>
-                  <option value="ENHANCEMENT">Enhancement</option>
-                  <option value="DOCUMENTATION">Documentation</option>
-                </Input>
-              </FormGroup>
-              <FormGroup>
-                <Label for="priority">Priority</Label>
-                <Input type="select" id="priority" name="priority" value={formData.priority} onChange={handleChange}>
-                  <option value="LOW">Low</option>
-                  <option value="MEDIUM">Medium</option>
-                  <option value="HIGH">High</option>
-                </Input>
-              </FormGroup>
-              <Button color="primary" type="submit" block>
-                Create Ticket
+              <Row>
+                <Col md="4">
+                  <FormGroup className="mb-3">
+                    <Label for="type" className="form-label">Type</Label>
+                    <Input type="select" id="type" name="type" value={formData.type} onChange={handleChange} className="form-control">
+                      <option value="BUG">🐛 Bug</option>
+                      <option value="FEATURE">✨ Feature</option>
+                      <option value="ENHANCEMENT">⚡ Enhancement</option>
+                      <option value="DOCUMENTATION">📚 Documentation</option>
+                    </Input>
+                  </FormGroup>
+                </Col>
+                <Col md="4">
+                  <FormGroup className="mb-3">
+                    <Label for="priority" className="form-label">Priority</Label>
+                    <Input type="select" id="priority" name="priority" value={formData.priority} onChange={handleChange} className="form-control">
+                      <option value="LOW">Low</option>
+                      <option value="MEDIUM">Medium</option>
+                      <option value="HIGH">High</option>
+                    </Input>
+                  </FormGroup>
+                </Col>
+                <Col md="4">
+                  <FormGroup className="mb-4">
+                    <Label for="status" className="form-label">Status</Label>
+                    <Input type="select" id="status" name="status" value={formData.status} onChange={handleChange} className="form-control">
+                      <option value="OPEN">Open</option>
+                      <option value="IN_PROGRESS">In Progress</option>
+                      <option value="CLOSED">Closed</option>
+                    </Input>
+                  </FormGroup>
+                </Col>
+              </Row>
+              <Button color="primary" type="submit" block className="action-btn w-100">
+                <span className="me-2">✨</span> Create Ticket
               </Button>
             </Form>
           </ModalBody>

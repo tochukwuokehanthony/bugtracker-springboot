@@ -48,49 +48,132 @@ const Dashboard = () => {
     )
   }
 
+  const openTickets = tickets.filter(t => t.status === 'OPEN').length
+  const inProgressTickets = tickets.filter(t => t.status === 'IN_PROGRESS').length
+
   return (
     <>
       <Navbar />
-      <Container>
-        <h1 className="mb-4">Dashboard</h1>
-        <Row>
-          <Col md="6" className="mb-4">
-            <Card>
-              <CardBody>
-                <CardTitle tag="h3">My Projects</CardTitle>
-                <h2 className="display-4">{projects.length}</h2>
-                <Button tag={Link} to="/projects" color="primary">
-                  View All Projects
-                </Button>
+      <Container className="py-4">
+        <div className="page-header">
+          <h1 className="page-title">Welcome back, {user?.firstName}!</h1>
+          <p className="text-muted">Here's what's happening with your projects today</p>
+        </div>
+
+        <Row className="g-4 mb-4">
+          <Col md="3">
+            <Card className="stat-card h-100">
+              <CardBody className="position-relative">
+                <span className="stat-icon">📁</span>
+                <CardTitle tag="h6" className="text-white-50 text-uppercase mb-2">Total Projects</CardTitle>
+                <h2 className="display-4 text-white mb-0">{projects.length}</h2>
               </CardBody>
             </Card>
           </Col>
-          <Col md="6" className="mb-4">
-            <Card>
-              <CardBody>
-                <CardTitle tag="h3">Assigned Tickets</CardTitle>
-                <h2 className="display-4">{tickets.length}</h2>
-                <Button tag={Link} to="/tickets" color="primary">
-                  View My Tickets
-                </Button>
+          <Col md="3">
+            <Card className="stat-card h-100">
+              <CardBody className="position-relative">
+                <span className="stat-icon">🎫</span>
+                <CardTitle tag="h6" className="text-white-50 text-uppercase mb-2">All Tickets</CardTitle>
+                <h2 className="display-4 text-white mb-0">{tickets.length}</h2>
+              </CardBody>
+            </Card>
+          </Col>
+          <Col md="3">
+            <Card className="stat-card h-100">
+              <CardBody className="position-relative">
+                <span className="stat-icon">🔄</span>
+                <CardTitle tag="h6" className="text-white-50 text-uppercase mb-2">In Progress</CardTitle>
+                <h2 className="display-4 text-white mb-0">{inProgressTickets}</h2>
+              </CardBody>
+            </Card>
+          </Col>
+          <Col md="3">
+            <Card className="stat-card h-100">
+              <CardBody className="position-relative">
+                <span className="stat-icon">📋</span>
+                <CardTitle tag="h6" className="text-white-50 text-uppercase mb-2">Open Tickets</CardTitle>
+                <h2 className="display-4 text-white mb-0">{openTickets}</h2>
               </CardBody>
             </Card>
           </Col>
         </Row>
 
-        <Row className="mt-4">
-          <Col md="12">
-            <Card>
+        <Row className="g-4">
+          <Col md="6">
+            <Card className="h-100">
               <CardBody>
-                <CardTitle tag="h4">Recent Projects</CardTitle>
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <CardTitle tag="h4" className="mb-0">Recent Projects</CardTitle>
+                  <Button tag={Link} to="/projects" color="primary" size="sm" className="action-btn">
+                    View All
+                  </Button>
+                </div>
                 {projects.length === 0 ? (
-                  <p>No projects yet. Create your first project!</p>
+                  <div className="empty-state">
+                    <div className="empty-state-icon">📁</div>
+                    <p className="mb-2">No projects yet</p>
+                    <Button tag={Link} to="/projects" color="primary" className="action-btn">
+                      Create Your First Project
+                    </Button>
+                  </div>
                 ) : (
-                  <ul className="list-group">
+                  <ul className="list-group list-group-flush">
                     {projects.slice(0, 5).map((project) => (
-                      <li key={project.id} className="list-group-item d-flex justify-content-between align-items-center">
-                        <Link to={`/projects/${project.id}`}>{project.name}</Link>
-                        <span className="badge bg-primary rounded-pill">{project.ticketCount} tickets</span>
+                      <li key={project.id} className="list-group-item px-0">
+                        <div className="d-flex justify-content-between align-items-center">
+                          <div>
+                            <Link to={`/projects/${project.id}`} className="fw-bold text-decoration-none">
+                              {project.name}
+                            </Link>
+                            <p className="text-muted mb-0 small">{project.description || 'No description'}</p>
+                          </div>
+                          <span className="badge bg-primary rounded-pill">{project.ticketCount || 0}</span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </CardBody>
+            </Card>
+          </Col>
+
+          <Col md="6">
+            <Card className="h-100">
+              <CardBody>
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <CardTitle tag="h4" className="mb-0">Recent Tickets</CardTitle>
+                  <Button tag={Link} to="/tickets" color="primary" size="sm" className="action-btn">
+                    View All
+                  </Button>
+                </div>
+                {tickets.length === 0 ? (
+                  <div className="empty-state">
+                    <div className="empty-state-icon">🎫</div>
+                    <p className="mb-2">No tickets assigned</p>
+                    <Button tag={Link} to="/tickets" color="primary" className="action-btn">
+                      View Tickets
+                    </Button>
+                  </div>
+                ) : (
+                  <ul className="list-group list-group-flush">
+                    {tickets.slice(0, 5).map((ticket) => (
+                      <li key={ticket.id} className="list-group-item px-0">
+                        <div className="d-flex justify-content-between align-items-start">
+                          <div className="flex-grow-1">
+                            <Link to={`/tickets/${ticket.id}`} className="fw-bold text-decoration-none">
+                              {ticket.title}
+                            </Link>
+                            <div className="mt-1">
+                              <span className={`badge status-badge status-${ticket.status?.toLowerCase().replace('_', '-')} me-2`}>
+                                {ticket.status?.replace('_', ' ')}
+                              </span>
+                              <span className={`badge priority-badge priority-${ticket.priority?.toLowerCase()}`}>
+                                {ticket.priority}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
                       </li>
                     ))}
                   </ul>

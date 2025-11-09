@@ -1,9 +1,9 @@
 package com.bugtracker.app.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -13,9 +13,12 @@ import java.util.Set;
 
 @Entity
 @Table(name = "users")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = {"createdProjects", "createdTickets", "projects", "assignedTickets", "comments"})
+@EqualsAndHashCode(exclude = {"createdProjects", "createdTickets", "projects", "assignedTickets", "comments"})
 public class User {
 
     @Id
@@ -26,6 +29,7 @@ public class User {
     private String email;
 
     @Column(nullable = false)
+    @JsonIgnore
     private String password;
 
     @Column(name = "first_name")
@@ -47,9 +51,11 @@ public class User {
 
     // Relationships
     @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL)
+    @JsonIgnore
     private Set<Project> createdProjects = new HashSet<>();
 
     @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL)
+    @JsonIgnore
     private Set<Ticket> createdTickets = new HashSet<>();
 
     @ManyToMany
@@ -58,6 +64,7 @@ public class User {
         joinColumns = @JoinColumn(name = "user_id"),
         inverseJoinColumns = @JoinColumn(name = "project_id")
     )
+    @JsonIgnoreProperties({"createdBy", "tickets", "teamMembers"})
     private Set<Project> projects = new HashSet<>();
 
     @ManyToMany
@@ -66,9 +73,11 @@ public class User {
         joinColumns = @JoinColumn(name = "user_id"),
         inverseJoinColumns = @JoinColumn(name = "ticket_id")
     )
+    @JsonIgnoreProperties({"project", "createdBy", "comments", "assignedDevelopers"})
     private Set<Ticket> assignedTickets = new HashSet<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonIgnore
     private Set<Comment> comments = new HashSet<>();
 
     // Helper method to get full name
