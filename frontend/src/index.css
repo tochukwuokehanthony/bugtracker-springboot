@@ -1,16 +1,17 @@
 :root {
-  /* Color Palette */
-  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  --warning-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  /* Argon Dashboard Color Palette */
+  --primary-gradient: linear-gradient(87deg, #5e72e4 0, #825ee4 100%);
+  --secondary-gradient: linear-gradient(87deg, #f5365c 0, #f56036 100%);
+  --success-gradient: linear-gradient(87deg, #2dce89 0, #2dcecc 100%);
+  --warning-gradient: linear-gradient(87deg, #fb6340 0, #fbb140 100%);
+  --info-gradient: linear-gradient(87deg, #11cdef 0, #1171ef 100%);
 
-  --primary-color: #667eea;
-  --secondary-color: #764ba2;
-  --success-color: #4facfe;
-  --danger-color: #f5576c;
-  --warning-color: #ffc107;
-  --info-color: #17a2b8;
+  --primary-color: #5e72e4;
+  --secondary-color: #f7fafc;
+  --success-color: #2dce89;
+  --danger-color: #f5365c;
+  --warning-color: #fb6340;
+  --info-color: #11cdef;
 
   --text-dark: #2d3748;
   --text-light: #718096;

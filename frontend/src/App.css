@@ -4,7 +4,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(87deg, #5e72e4 0, #825ee4 100%);
   padding: 2rem;
 }
 
@@ -26,7 +26,7 @@
 }
 
 .auth-title {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(87deg, #5e72e4 0, #825ee4 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -43,44 +43,25 @@
 }
 
 /* Navbar Enhancements */
-.modern-navbar {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+.navbar-top {
   padding: 1rem 0;
+  border-bottom: 1px solid #e9ecef;
 }
 
-.modern-navbar .navbar-brand {
-  font-weight: 700;
-  font-size: 1.5rem;
-  letter-spacing: -0.5px;
-}
-
-.modern-navbar .nav-link {
+.navbar-top .dropdown-toggle {
+  color: #525f7f;
   font-weight: 500;
-  margin: 0 0.5rem;
-  transition: all 0.3s ease;
-  position: relative;
+  padding: 0.5rem 1rem;
+  transition: all 0.15s ease;
 }
 
-.modern-navbar .nav-link::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 2px;
-  background: white;
-  transition: width 0.3s ease;
-}
-
-.modern-navbar .nav-link:hover::after {
-  width: 80%;
+.navbar-top .dropdown-toggle:hover {
+  color: #5e72e4;
 }
 
 /* Dashboard Stats Cards */
 .stat-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(87deg, #5e72e4 0, #825ee4 100%);
   color: white;
   border: none;
   position: relative;
@@ -192,7 +173,7 @@
 }
 
 .page-title {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(87deg, #5e72e4 0, #825ee4 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

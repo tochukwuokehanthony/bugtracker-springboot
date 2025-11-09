@@ -1,0 +1,37 @@
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #f7fafc;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: 250px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.content-wrapper {
+  flex: 1;
+  padding: 2rem;
+}
+
+/* Make navbar span the full width */
+.main-content > .navbar {
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+  }
+
+  .content-wrapper {
+    padding: 1rem;
+  }
+}

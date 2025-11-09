@@ -7,6 +7,7 @@ import Projects from './pages/Projects'
 import ProjectDetails from './pages/ProjectDetails'
 import Tickets from './pages/Tickets'
 import TicketDetails from './pages/TicketDetails'
+import AdminLayout from './layouts/AdminLayout'
 import './App.css'
 
 // Protected Route Component
@@ -29,46 +30,19 @@ function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/projects"
-        element={
-          <ProtectedRoute>
-            <Projects />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/projects/:id"
-        element={
-          <ProtectedRoute>
-            <ProjectDetails />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/tickets"
-        element={
-          <ProtectedRoute>
-            <Tickets />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/tickets/:id"
-        element={
-          <ProtectedRoute>
-            <TicketDetails />
-          </ProtectedRoute>
-        }
-      />
+
+      <Route element={
+        <ProtectedRoute>
+          <AdminLayout />
+        </ProtectedRoute>
+      }>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/projects" element={<Projects />} />
+        <Route path="/projects/:id" element={<ProjectDetails />} />
+        <Route path="/tickets" element={<Tickets />} />
+        <Route path="/tickets/:id" element={<TicketDetails />} />
+      </Route>
+
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   )
