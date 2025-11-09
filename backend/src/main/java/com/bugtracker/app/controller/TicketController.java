@@ -49,8 +49,10 @@ public class TicketController {
 
     @PutMapping("/{id}")
     public ResponseEntity<TicketDto> updateTicket(@PathVariable Long id,
-                                                   @Valid @RequestBody TicketDto ticketDto) {
-        return ResponseEntity.ok(ticketService.updateTicket(id, ticketDto));
+                                                   @Valid @RequestBody TicketDto ticketDto,
+                                                   Authentication authentication) {
+        String email = authentication.getName();
+        return ResponseEntity.ok(ticketService.updateTicket(id, ticketDto, email));
     }
 
     @PostMapping("/{ticketId}/assign/{userId}")

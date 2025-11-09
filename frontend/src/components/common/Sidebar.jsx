@@ -21,7 +21,7 @@ const Sidebar = () => {
     {
       path: '/tickets',
       name: 'My Tickets',
-      icon: '🎫',
+      icon: <img src="/ticket-icon.svg" alt="Tickets" style={{ width: '20px', height: '20px' }} />,
     },
   ]
 
@@ -33,7 +33,9 @@ const Sidebar = () => {
     <div className="sidebar">
       <div className="sidebar-header">
         <Link to="/" className="sidebar-brand">
-          <span className="brand-icon">🐛</span>
+          <span className="brand-icon">
+            <img src="/bug-tracker-logo.svg" alt="Bug Tracker Logo" style={{ width: '40px', height: '40px' }} />
+          </span>
           <span className="brand-text">Bug Tracker</span>
         </Link>
       </div>

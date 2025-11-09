@@ -70,7 +70,8 @@ public class TicketService {
         ticket.setProject(project);
         ticket.setCreatedBy(creator);
         ticket.setPriority(ticketDto.getPriority() != null ? ticketDto.getPriority() : "MEDIUM");
-        ticket.setStatus(ticketDto.getStatus() != null ? ticketDto.getStatus() : "OPEN");
+        // Tickets always start as OPEN when created
+        ticket.setStatus("OPEN");
         ticket.setType(ticketDto.getType() != null ? ticketDto.getType() : "BUG");
         ticket.setTimeEstimate(ticketDto.getTimeEstimate());
 
@@ -79,16 +80,26 @@ public class TicketService {
     }
 
     @Transactional
-    public TicketDto updateTicket(Long id, TicketDto ticketDto) {
+    public TicketDto updateTicket(Long id, TicketDto ticketDto, String userEmail) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket not found with id: " + id));
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         ticket.setTitle(ticketDto.getTitle());
         ticket.setDescription(ticketDto.getDescription());
         ticket.setPriority(ticketDto.getPriority());
-        ticket.setStatus(ticketDto.getStatus());
         ticket.setType(ticketDto.getType());
         ticket.setTimeEstimate(ticketDto.getTimeEstimate());
+
+        // Only admins can set status to CLOSED
+        if (ticketDto.getStatus() != null) {
+            if ("CLOSED".equals(ticketDto.getStatus()) && !"ADMIN".equals(user.getAuthorityLevel())) {
+                throw new SecurityException("Only admins can close tickets");
+            }
+            ticket.setStatus(ticketDto.getStatus());
+        }
 
         ticket = ticketRepository.save(ticket);
         return convertToDto(ticket);
@@ -103,6 +114,12 @@ public class TicketService {
 
         ticket.getAssignedDevelopers().add(user);
         user.getAssignedTickets().add(ticket);
+
+        // Automatically set status to IN_PROGRESS when first developer is assigned
+        if ("OPEN".equals(ticket.getStatus())) {
+            ticket.setStatus("IN_PROGRESS");
+        }
+
         ticketRepository.save(ticket);
     }
 
@@ -115,6 +132,12 @@ public class TicketService {
 
         ticket.getAssignedDevelopers().remove(user);
         user.getAssignedTickets().remove(ticket);
+
+        // If no developers left and status is IN_PROGRESS, set back to OPEN
+        if (ticket.getAssignedDevelopers().isEmpty() && "IN_PROGRESS".equals(ticket.getStatus())) {
+            ticket.setStatus("OPEN");
+        }
+
         ticketRepository.save(ticket);
     }
 

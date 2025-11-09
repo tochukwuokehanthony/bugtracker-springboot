@@ -1,21 +1,27 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { Card, CardBody, Badge, Row, Col, Button, Form, FormGroup, Input } from 'reactstrap'
-import { ticketAPI, commentAPI } from '../api/endpoints'
+import { Card, CardBody, Badge, Row, Col, Button, Form, FormGroup, Input, Label, Modal, ModalHeader, ModalBody } from 'reactstrap'
+import { ticketAPI, commentAPI, userAPI } from '../api/endpoints'
 import { useAuth } from '../context/AuthContext'
 import { toast } from 'react-toastify'
 import { timeAgo, daysSince, formatDate } from '../utils/timeUtils'
 
 const TicketDetails = () => {
   const { id } = useParams()
-  const { user } = useAuth()
+  const { user, isAdmin } = useAuth()
   const [ticket, setTicket] = useState(null)
   const [comments, setComments] = useState([])
   const [loading, setLoading] = useState(true)
   const [commentContent, setCommentContent] = useState('')
+  const [assignModalOpen, setAssignModalOpen] = useState(false)
+  const [allUsers, setAllUsers] = useState([])
+  const [selectedUserId, setSelectedUserId] = useState('')
 
   useEffect(() => {
     fetchTicketDetails()
+    if (isAdmin()) {
+      fetchAllUsers()
+    }
   }, [id])
 
   const fetchTicketDetails = async () => {
@@ -56,10 +62,90 @@ const TicketDetails = () => {
     }
   }
 
+  const fetchAllUsers = async () => {
+    try {
+      const response = await userAPI.getAllUsers()
+      setAllUsers(response.data)
+    } catch (error) {
+      toast.error('Failed to load users')
+      console.error(error)
+    }
+  }
+
+  const handleOpenAssignModal = () => {
+    fetchAllUsers()
+    setAssignModalOpen(true)
+  }
+
+  const handleAssignUser = async () => {
+    if (!selectedUserId) {
+      toast.warning('Please select a user')
+      return
+    }
+
+    try {
+      await ticketAPI.assignDeveloper(parseInt(id), parseInt(selectedUserId))
+      toast.success('User assigned to ticket')
+      setAssignModalOpen(false)
+      setSelectedUserId('')
+      fetchTicketDetails()
+    } catch (error) {
+      toast.error('Failed to assign user')
+      console.error(error)
+    }
+  }
+
+  const handleUnassignUser = async (userId) => {
+    try {
+      await ticketAPI.unassignDeveloper(parseInt(id), userId)
+      toast.success('User unassigned from ticket')
+      fetchTicketDetails()
+    } catch (error) {
+      toast.error('Failed to unassign user')
+      console.error(error)
+    }
+  }
+
+  const handleCloseTicket = async () => {
+    if (!window.confirm('Are you sure you want to close this ticket? This action can only be done by admins.')) {
+      return
+    }
+
+    try {
+      await ticketAPI.updateTicket(parseInt(id), {
+        ...ticket,
+        status: 'CLOSED'
+      })
+      toast.success('Ticket closed successfully')
+      fetchTicketDetails()
+    } catch (error) {
+      toast.error('Failed to close ticket')
+      console.error(error)
+    }
+  }
+
+  const handleReopenTicket = async () => {
+    if (!window.confirm('Are you sure you want to reopen this ticket?')) {
+      return
+    }
+
+    try {
+      await ticketAPI.updateTicket(parseInt(id), {
+        ...ticket,
+        status: 'OPEN'
+      })
+      toast.success('Ticket reopened successfully')
+      fetchTicketDetails()
+    } catch (error) {
+      toast.error('Failed to reopen ticket')
+      console.error(error)
+    }
+  }
+
   const getTypeIcon = (type) => {
     switch (type) {
       case 'BUG':
-        return '🐛'
+        return <img src="/bug-icon.svg" alt="Bug" style={{ width: '32px', height: '32px' }} />
       case 'FEATURE':
         return '✨'
       case 'ENHANCEMENT':
@@ -96,7 +182,7 @@ const TicketDetails = () => {
           <div className="fs-2">{getTypeIcon(ticket.type)}</div>
           <div className="flex-grow-1">
             <h1 className="page-title mb-2">{ticket.title}</h1>
-            <div className="d-flex gap-2 flex-wrap">
+            <div className="d-flex gap-2 flex-wrap align-items-center">
               <Badge color="secondary" className="text-uppercase px-3 py-2">
                 {ticket.type}
               </Badge>
@@ -106,6 +192,16 @@ const TicketDetails = () => {
               <span className={`badge status-badge status-${ticket.status?.toLowerCase().replace('_', '-')} px-3 py-2`}>
                 {ticket.status?.replace('_', ' ')}
               </span>
+              {isAdmin() && ticket.status !== 'CLOSED' && (
+                <Button size="sm" color="success" onClick={handleCloseTicket} className="ms-2">
+                  ✓ Close Ticket
+                </Button>
+              )}
+              {isAdmin() && ticket.status === 'CLOSED' && (
+                <Button size="sm" color="warning" onClick={handleReopenTicket} className="ms-2">
+                  ↻ Reopen Ticket
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -208,8 +304,42 @@ const TicketDetails = () => {
               </div>
 
               <div className="mb-3 pb-3 border-bottom">
-                <small className="text-muted d-block mb-1">Assigned Developers</small>
-                <strong>👥 {ticket.assignedDeveloperIds?.length || 0} developers</strong>
+                <div className="d-flex justify-content-between align-items-center mb-2">
+                  <small className="text-muted">Assigned Developers</small>
+                  {isAdmin() && (
+                    <Button size="sm" color="primary" onClick={handleOpenAssignModal}>
+                      <span className="me-1">➕</span> Assign
+                    </Button>
+                  )}
+                </div>
+                {ticket.assignedDeveloperIds && ticket.assignedDeveloperIds.length > 0 ? (
+                  <div className="d-flex flex-column gap-2">
+                    {allUsers.filter(u => ticket.assignedDeveloperIds.includes(u.id)).map(dev => (
+                      <div key={dev.id} className="d-flex align-items-center justify-content-between">
+                        <div className="d-flex align-items-center gap-2">
+                          <div className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+                               style={{ width: '28px', height: '28px', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                            {dev.firstName?.charAt(0)}{dev.lastName?.charAt(0)}
+                          </div>
+                          <span className="small">{dev.firstName} {dev.lastName}</span>
+                        </div>
+                        {isAdmin() && (
+                          <Button
+                            size="sm"
+                            color="danger"
+                            outline
+                            onClick={() => handleUnassignUser(dev.id)}
+                            style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem' }}
+                          >
+                            ✕
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <small className="text-muted">No developers assigned</small>
+                )}
               </div>
 
               <div className="mb-3 pb-3 border-bottom">
@@ -230,6 +360,47 @@ const TicketDetails = () => {
           </Card>
         </Col>
       </Row>
+
+      {/* Assign Developer Modal */}
+      <Modal isOpen={assignModalOpen} toggle={() => setAssignModalOpen(false)} centered>
+        <ModalHeader toggle={() => setAssignModalOpen(false)} className="border-0 pb-0">
+          <div>
+            <h4 className="mb-1 gradient-text">Assign Developer</h4>
+            <p className="text-muted small mb-0">Select a user to assign to this ticket</p>
+          </div>
+        </ModalHeader>
+        <ModalBody className="pt-2">
+          <Form onSubmit={(e) => { e.preventDefault(); handleAssignUser(); }}>
+            <FormGroup className="mb-3">
+              <Label for="userId" className="form-label">User</Label>
+              <Input
+                type="select"
+                id="userId"
+                value={selectedUserId}
+                onChange={(e) => setSelectedUserId(e.target.value)}
+                className="form-control"
+              >
+                <option value="">Select a user...</option>
+                {allUsers
+                  .filter(u => !ticket?.assignedDeveloperIds?.includes(u.id))
+                  .map(user => (
+                    <option key={user.id} value={user.id}>
+                      {user.firstName} {user.lastName} ({user.email})
+                    </option>
+                  ))}
+              </Input>
+            </FormGroup>
+            <div className="d-flex gap-2">
+              <Button color="primary" type="submit" className="action-btn flex-grow-1">
+                <span className="me-2">👤</span> Assign User
+              </Button>
+              <Button color="secondary" outline onClick={() => setAssignModalOpen(false)}>
+                Cancel
+              </Button>
+            </div>
+          </Form>
+        </ModalBody>
+      </Modal>
     </>
   )
 }

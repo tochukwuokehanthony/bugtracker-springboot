@@ -39,7 +39,9 @@ const Register = () => {
       <div className="auth-card">
         <Card>
           <CardBody className="p-5">
-            <div className="auth-logo">🐛</div>
+            <div className="auth-logo">
+              <img src="/bug-tracker-logo.svg" alt="Bug Tracker Logo" style={{ width: '120px', height: '120px' }} />
+            </div>
             <h2 className="auth-title">Bug Tracker</h2>
             <p className="auth-subtitle">Create your account to get started</p>
             <Form onSubmit={handleSubmit}>

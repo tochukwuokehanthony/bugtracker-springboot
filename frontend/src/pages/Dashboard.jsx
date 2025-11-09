@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Row, Col, Card, CardBody, CardTitle, Button } from 'reactstrap'
 import PieChart from '../components/charts/PieChart'
 import { projectAPI, ticketAPI } from '../api/endpoints'
@@ -7,7 +7,8 @@ import { useAuth } from '../context/AuthContext'
 import { toast } from 'react-toastify'
 
 const Dashboard = () => {
-  const { user } = useAuth()
+  const { user, isAdmin } = useAuth()
+  const navigate = useNavigate()
   const [projects, setProjects] = useState([])
   const [tickets, setTickets] = useState([])
   const [loading, setLoading] = useState(true)
@@ -18,9 +19,10 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
+      // Admins see all projects and tickets, regular users see only their own
       const [projectsRes, ticketsRes] = await Promise.all([
-        projectAPI.getProjectsByUserId(user.id),
-        ticketAPI.getTicketsByUserId(user.id),
+        isAdmin() ? projectAPI.getAllProjects() : projectAPI.getProjectsByUserId(user.id),
+        isAdmin() ? ticketAPI.getAllTickets() : ticketAPI.getTicketsByUserId(user.id),
       ])
 
       setProjects(projectsRes.data)
@@ -62,8 +64,8 @@ const Dashboard = () => {
   return (
     <>
       <div className="page-header">
-        <h1 className="page-title">Welcome back, {user?.firstName}!</h1>
-        <p className="text-muted">Here's what's happening with your projects today</p>
+        <h1 className="page-title">Welcome back, {user?.firstName}! {isAdmin() && <span className="badge bg-danger ms-2">Admin</span>}</h1>
+        <p className="text-muted">{isAdmin() ? "Overview of all projects and tickets in the system" : "Here's what's happening with your projects today"}</p>
       </div>
 
       <Row className="g-4 mb-4">
@@ -79,7 +81,9 @@ const Dashboard = () => {
         <Col md="3">
           <Card className="stat-card h-100">
             <CardBody className="position-relative">
-              <span className="stat-icon">🎫</span>
+              <span className="stat-icon">
+                <img src="/ticket-icon.svg" alt="Tickets" style={{ width: '48px', height: '48px' }} />
+              </span>
               <CardTitle tag="h6" className="text-white-50 text-uppercase mb-2">All Tickets</CardTitle>
               <h2 className="display-4 text-white mb-0">{tickets.length}</h2>
             </CardBody>
@@ -196,7 +200,9 @@ const Dashboard = () => {
               </div>
               {tickets.length === 0 ? (
                 <div className="empty-state">
-                  <div className="empty-state-icon">🎫</div>
+                  <div className="empty-state-icon">
+                    <img src="/ticket-icon.svg" alt="No Tickets" style={{ width: '64px', height: '64px', opacity: 0.5 }} />
+                  </div>
                   <p className="mb-2">No tickets assigned</p>
                   <Button tag={Link} to="/tickets" color="primary" className="action-btn">
                     View Tickets
@@ -205,7 +211,7 @@ const Dashboard = () => {
               ) : (
                 <ul className="list-group list-group-flush">
                   {tickets.slice(0, 5).map((ticket) => (
-                    <li key={ticket.id} className="list-group-item px-0">
+                    <li key={ticket.id} onClick={() => navigate(`/tickets/${ticket.id}`)} className="list-group-item px-0" style={{ cursor: 'pointer' }}>
                       <div className="d-flex justify-content-between align-items-start">
                         <div className="flex-grow-1">
                           <Link to={`/tickets/${ticket.id}`} className="fw-bold text-decoration-none">

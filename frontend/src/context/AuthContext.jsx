@@ -62,6 +62,10 @@ export const AuthProvider = ({ children }) => {
     toast.info('Logged out successfully');
   };
 
+  const isAdmin = () => {
+    return user?.authorityLevel === 'ADMIN';
+  };
+
   const value = {
     user,
     loading,
@@ -69,6 +73,7 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     isAuthenticated: !!user,
+    isAdmin,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

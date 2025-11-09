@@ -16,7 +16,6 @@ const ProjectDetails = () => {
     description: '',
     priority: 'MEDIUM',
     type: 'BUG',
-    status: 'OPEN',
   })
 
   useEffect(() => {
@@ -60,7 +59,7 @@ const ProjectDetails = () => {
         projectId: parseInt(id),
       })
       toast.success('Ticket created successfully')
-      setFormData({ title: '', description: '', priority: 'MEDIUM', type: 'BUG', status: 'OPEN' })
+      setFormData({ title: '', description: '', priority: 'MEDIUM', type: 'BUG' })
       toggleModal()
       fetchProjectDetails()
     } catch (error) {
@@ -72,7 +71,7 @@ const ProjectDetails = () => {
   const getTypeIcon = (type) => {
     switch (type) {
       case 'BUG':
-        return '🐛'
+        return <img src="/bug-icon.svg" alt="Bug" style={{ width: '32px', height: '32px' }} />
       case 'FEATURE':
         return '✨'
       case 'ENHANCEMENT':
@@ -159,7 +158,9 @@ const ProjectDetails = () => {
         <Col md="3">
           <Card className="stat-card h-100">
             <CardBody className="position-relative">
-              <span className="stat-icon">🎫</span>
+              <span className="stat-icon">
+                <img src="/ticket-icon.svg" alt="Tickets" style={{ width: '48px', height: '48px' }} />
+              </span>
               <CardTitle tag="h6" className="text-white-50 text-uppercase mb-2">Total Tickets</CardTitle>
               <h2 className="display-4 text-white mb-0">{tickets.length}</h2>
             </CardBody>
@@ -199,7 +200,9 @@ const ProjectDetails = () => {
           <h4 className="mb-4 fw-bold">Tickets</h4>
           {tickets.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-state-icon">🎫</div>
+              <div className="empty-state-icon">
+                <img src="/ticket-icon.svg" alt="No Tickets" style={{ width: '64px', height: '64px', opacity: 0.5 }} />
+              </div>
               <h5 className="mb-2">No Tickets Yet</h5>
               <p className="mb-4">Create your first ticket to start tracking bugs and features!</p>
               <Button color="primary" onClick={toggleModal} className="action-btn">
@@ -288,19 +291,19 @@ const ProjectDetails = () => {
               />
             </FormGroup>
             <Row>
-              <Col md="4">
+              <Col md="6">
                 <FormGroup className="mb-3">
                   <Label for="type" className="form-label">Type</Label>
                   <Input type="select" id="type" name="type" value={formData.type} onChange={handleChange} className="form-control">
-                    <option value="BUG">🐛 Bug</option>
+                    <option value="BUG">Bug</option>
                     <option value="FEATURE">✨ Feature</option>
                     <option value="ENHANCEMENT">⚡ Enhancement</option>
                     <option value="DOCUMENTATION">📚 Documentation</option>
                   </Input>
                 </FormGroup>
               </Col>
-              <Col md="4">
-                <FormGroup className="mb-3">
+              <Col md="6">
+                <FormGroup className="mb-4">
                   <Label for="priority" className="form-label">Priority</Label>
                   <Input type="select" id="priority" name="priority" value={formData.priority} onChange={handleChange} className="form-control">
                     <option value="LOW">Low</option>
@@ -309,17 +312,10 @@ const ProjectDetails = () => {
                   </Input>
                 </FormGroup>
               </Col>
-              <Col md="4">
-                <FormGroup className="mb-4">
-                  <Label for="status" className="form-label">Status</Label>
-                  <Input type="select" id="status" name="status" value={formData.status} onChange={handleChange} className="form-control">
-                    <option value="OPEN">Open</option>
-                    <option value="IN_PROGRESS">In Progress</option>
-                    <option value="CLOSED">Closed</option>
-                  </Input>
-                </FormGroup>
-              </Col>
             </Row>
+            <div className="alert alert-info mb-3" role="alert">
+              <small>New tickets will start with "OPEN" status and automatically move to "IN PROGRESS" when a developer is assigned.</small>
+            </div>
             <Button color="primary" type="submit" block className="action-btn w-100">
               <span className="me-2">✨</span> Create Ticket
             </Button>

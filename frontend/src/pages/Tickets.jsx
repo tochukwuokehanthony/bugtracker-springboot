@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Card, CardBody, Badge, Row, Col } from 'reactstrap'
 import Pagination from '../components/common/Pagination'
 import { ticketAPI } from '../api/endpoints'
@@ -8,7 +8,8 @@ import { toast } from 'react-toastify'
 import { daysSince } from '../utils/timeUtils'
 
 const Tickets = () => {
-  const { user } = useAuth()
+  const { user, isAdmin } = useAuth()
+  const navigate = useNavigate()
   const [tickets, setTickets] = useState([])
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
@@ -20,7 +21,10 @@ const Tickets = () => {
 
   const fetchTickets = async () => {
     try {
-      const response = await ticketAPI.getTicketsByUserId(user.id)
+      // Admins see all tickets, regular users see only their assigned tickets
+      const response = isAdmin()
+        ? await ticketAPI.getAllTickets()
+        : await ticketAPI.getTicketsByUserId(user.id)
       setTickets(response.data)
     } catch (error) {
       toast.error('Failed to load tickets')
@@ -33,7 +37,7 @@ const Tickets = () => {
   const getTypeIcon = (type) => {
     switch (type) {
       case 'BUG':
-        return '🐛'
+        return <img src="/bug-icon.svg" alt="Bug" style={{ width: '20px', height: '20px' }} />
       case 'FEATURE':
         return '✨'
       case 'ENHANCEMENT':
@@ -58,8 +62,8 @@ const Tickets = () => {
   return (
     <>
       <div className="page-header">
-        <h1 className="page-title">My Assigned Tickets</h1>
-        <p className="text-muted">Track and manage all tickets assigned to you</p>
+        <h1 className="page-title">{isAdmin() ? 'All Tickets' : 'My Assigned Tickets'} {isAdmin() && <span className="badge bg-danger ms-2">Admin</span>}</h1>
+        <p className="text-muted">{isAdmin() ? 'View and manage all tickets in the system' : 'Track and manage all tickets assigned to you'}</p>
       </div>
 
       {loading ? (
@@ -73,7 +77,9 @@ const Tickets = () => {
         <Card className="border-0 shadow">
           <CardBody>
             <div className="empty-state">
-              <div className="empty-state-icon">🎫</div>
+              <div className="empty-state-icon">
+                <img src="/ticket-icon.svg" alt="No Tickets" style={{ width: '64px', height: '64px', opacity: 0.5 }} />
+              </div>
               <h3 className="mb-2">No Tickets Assigned</h3>
               <p className="mb-4">You don't have any tickets assigned to you yet.</p>
             </div>
@@ -116,7 +122,7 @@ const Tickets = () => {
                   </thead>
                   <tbody>
                     {paginatedTickets.map((ticket) => (
-                      <tr key={ticket.id} style={{ cursor: 'pointer' }}>
+                      <tr key={ticket.id} onClick={() => navigate(`/tickets/${ticket.id}`)} style={{ cursor: 'pointer' }}>
                         <td className="px-4 py-3">
                           <div className="d-flex align-items-center gap-2">
                             <span style={{ fontSize: '1.25rem' }}>{getTypeIcon(ticket.type)}</span>
